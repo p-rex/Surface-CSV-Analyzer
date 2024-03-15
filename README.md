@@ -11,7 +11,7 @@ export SURFACE_CSV_ISSUE='xxx-issues-reposify-report.csv'
 export SURFACE_CSV_ASSET='xxx-assets-reposify-report.csv'
 ```
 
-1. run the script
+2. run the script
 ```shell
 python analyze.py
 ```

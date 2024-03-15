@@ -2,7 +2,7 @@
 
 # Usage
 
-1. environment variables.
+1. environment variables.  
 Set 4 CSV file path in environment variables. I recommend you to use full path.
 ```shell
 export SURFACE_CSV_DOMAIN='xxx-domains-reposify-report.csv' 

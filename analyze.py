@@ -5,8 +5,9 @@ import os
 import pprint
 
 
-#############################################
-### Classes
+#=============================================================#
+# Classes
+#=============================================================#
 
 class SurfaceCSV:
 
@@ -28,6 +29,12 @@ class SurfaceCSV:
         return item_list
 
 
+    #一般的な項目の数を取得
+    def getColCounts(self, col):
+        col_list = self.getSeries(col)
+        return dict(collections.Counter(col_list))
+
+
     #Root Domainの数を取得
     def getRootDomainCnt(self):
         domain_list = []
@@ -37,13 +44,6 @@ class SurfaceCSV:
             domain_list.append(ext.registered_domain)
 
         return dict(collections.Counter(domain_list))
-
-
-    #一般的に項目の数を取得
-    def getColCounts(self, col):
-        col_list = self.getSeries(col)
-        return dict(collections.Counter(col_list))
-
 
 
     # Issueの一覧を取得
@@ -65,7 +65,8 @@ class SurfaceCSV:
 
 
 
-class PrintFormat:
+# This class will support multiple output format.
+class OutputFormat:
     def __init__(self, title, dict):
         self.title = title
         self.dict = dict
@@ -77,75 +78,92 @@ class PrintFormat:
 
 
 
-#############################################
-### functions
+class AnalyzeRouter:
+    def __init__(self, csv_type, tgt_col_list, output_fmt):
+        self.csv_type = csv_type
+        self.tgt_col_list = tgt_col_list
+        self.output_fmt = output_fmt
+        self.routing()
+    
+    def routing(self):
+        if(self.csv_type == 'domain'):
+            sc = SurfaceCSV(csv_domain)
+            for column in self.tgt_col_list:
+                if(column == 'RootDomain'):
+                    col_dict = sc.getRootDomainCnt()
+                else:
+                    col_dict = sc.getColCounts(column)
+                
+                self.output(column, col_dict)
 
+        elif(self.csv_type == 'service'):
+            sc = SurfaceCSV(csv_service)
+            for column in self.tgt_col_list:
+                if(column == 'RootDomain'):
+                    col_dict = sc.getRootDomainCnt()
+                else:
+                    col_dict = sc.getColCounts(column)
+                
+                self.output(column, col_dict)
+
+        elif(self.csv_type == 'issue'):
+            sc = SurfaceCSV(csv_issue)
+            for column in self.tgt_col_list:
+                if(column == 'Issue ID'):
+                    secerity_list = ['critical', 'high', 'medium', 'low']
+                    for severity in secerity_list:
+                        issue_dict = sc.getIssues(severity)
+                        self.output(f'{severity} {column}', issue_dict)
+                    continue
+ 
+                else:
+                    col_dict = sc.getColCounts(column)
+                
+                self.output(column, col_dict)
+
+        elif(self.csv_type == 'asset'):
+            sc = SurfaceCSV(csv_asset)
+            for column in self.tgt_col_list:
+                col_dict = sc.getColCounts(column)
+                self.output(column, col_dict)
+                
+
+    def output(self, column, col_dict):
+        if(self.output_fmt == 'console_csv'):
+            of = OutputFormat(f'# {column} counts - from {self.csv_type}.csv', col_dict)
+            of.print2Console()
+
+
+
+#=============================================================#
+# functions
+#=============================================================#
 def printDict(dict):
     for key, value in dict.items():
         print("{0},{1}".format(key, value))
 
 
+#=============================================================#
+# main
+#=============================================================#
+# config
+domain_tgt_col_list = ['RootDomain', 'Domain'] #RootDomain has special culculation
+service_tgt_col_list = ['RootDomain', 'Protocol', 'Port', 'Platform']
+asset_tgt_col_list = ['Hosting Provider', 'Country Name']
+issue_tgt_col_list = ['Issue ID'] #Issue ID has special culculation
 
-#############################################
-### main
 
 # Set environment variables
 csv_domain = os.getenv('SURFACE_CSV_DOMAIN')
 csv_service = os.getenv('SURFACE_CSV_SERVICE')
-csv_issue = os.getenv('SURFACE_CSV_ISSUE')
 csv_asset = os.getenv('SURFACE_CSV_ASSET')
-
-#=== domains.csv ======
-sc_domain = SurfaceCSV(csv_domain)
-
-# Counts Domain from domain
-domain_dict = sc_domain.getRootDomainCnt()
-pf = PrintFormat('# Domain counts - with unofficial perimeter', domain_dict)
-pf.print2Console()
-
-# Counts FQDN
-col_dict = sc_domain.getColCounts('Domain')
-pf = PrintFormat('# FQDN counts - with unofficial perimeter', col_dict)
-pf.print2Console()
-
-
-#=== services.csv ======
-sc_issue = SurfaceCSV(csv_service)
-
-### Counts Domain from Service
-domain_dict = sc_issue.getRootDomainCnt()
-pf = PrintFormat('# Domain counts - from service', domain_dict)
-pf.print2Console()
-
-### Counts columns from Service
-column_list = ['Protocol', 'Port', 'Platform']
-for column in column_list:
-    col_dict = sc_issue.getColCounts(column)
-    pf = PrintFormat('# ' + column + ' counts - from service', col_dict)
-    pf.print2Console()
-
-
-#=== issues.csv ======
-# Counts Issues
-sc_issue = SurfaceCSV(csv_issue)
-secerity_list = ['critical', 'high', 'medium', 'low']
-for severity in secerity_list:
-    issue_dict = sc_issue.getIssues(severity)
-    pf = PrintFormat('# Issue counts - ' + severity, issue_dict)
-    pf.print2Console()
+csv_issue = os.getenv('SURFACE_CSV_ISSUE')
 
 
 
-
-#=== assets.csv ======
-sc_asset = SurfaceCSV(csv_asset)
-
-### Counts Hosting Provider from asset
-column_list = ['Hosting Provider', 'Country Name']
-for column in column_list:
-    col_dict = sc_issue.getColCounts(column)
-    pf = PrintFormat('# ' + column + ' counts - from asset', col_dict)
-    pf.print2Console()
-
-
+# Anlyze
+AnalyzeRouter('domain', domain_tgt_col_list, 'console_csv')
+AnalyzeRouter('service', service_tgt_col_list, 'console_csv')
+AnalyzeRouter('asset', asset_tgt_col_list, 'console_csv')
+AnalyzeRouter('issue', issue_tgt_col_list, 'console_csv')
 

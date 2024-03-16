@@ -152,7 +152,7 @@ except KeyError as e:
     exit(f'Error - Please specify CSV file path in environment variable: {e}')
 
 
-# Anlyze
+# Analyze
 AnalyzeRouter('domain', domain_tgt_col_list, output_fmt)
 AnalyzeRouter('service', service_tgt_col_list, output_fmt)
 AnalyzeRouter('asset', asset_tgt_col_list, output_fmt)

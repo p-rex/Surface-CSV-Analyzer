@@ -22,7 +22,7 @@ export SURFACE_CSV_ASSET='/aa/aa/xxx-assets-reposify-report.csv'
 python analyze.py
 ```
   
-You can run the script without saving with the command below.
+Or you can run the script without saving with the command below.
 ```shell
 curl -s https://github_raw_url/analyze.py | python
 ```

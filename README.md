@@ -24,6 +24,6 @@ python analyze.py
   
 You can run the script without saving with the command below.
 ```shell
-https://github_raw_url/analyze.py | python
+curl -s https://github_raw_url/analyze.py | python
 ```
 

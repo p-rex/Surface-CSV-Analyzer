@@ -12,7 +12,10 @@ import pprint
 class SurfaceCSV:
 
     def __init__(self, csv_path):
-        self.df = pd.read_csv(csv_path)
+        try:
+            self.df = pd.read_csv(csv_path)
+        except FileNotFoundError as e:
+            exit(f'Error - {e}')
 
     #特定カラムの値を取得（CSVを縦に取得）
     #dfを指定したい場合があるため、空のDataFrameを作成し、df.emptyで判断する。本当は引数にdf = self.dfを入れたいが、こうしないとエラーになる。
@@ -88,45 +91,30 @@ class AnalyzeRouter:
     def routing(self):
         if(self.csv_type == 'domain'):
             sc = SurfaceCSV(csv_domain)
-            for column in self.tgt_col_list:
-                if(column == 'RootDomain'):
-                    col_dict = sc.getRootDomainCnt()
-                else:
-                    col_dict = sc.getColCounts(column)
-                
-                self.output(column, col_dict)
-
         elif(self.csv_type == 'service'):
             sc = SurfaceCSV(csv_service)
-            for column in self.tgt_col_list:
-                if(column == 'RootDomain'):
-                    col_dict = sc.getRootDomainCnt()
-                else:
-                    col_dict = sc.getColCounts(column)
-                
-                self.output(column, col_dict)
-
-        elif(self.csv_type == 'issue'):
-            sc = SurfaceCSV(csv_issue)
-            for column in self.tgt_col_list:
-                if(column == 'Issue ID'):
-                    secerity_list = ['critical', 'high', 'medium', 'low']
-                    for severity in secerity_list:
-                        issue_dict = sc.getIssues(severity)
-                        self.output(f'{severity} {column}', issue_dict)
-                    continue
- 
-                else:
-                    col_dict = sc.getColCounts(column)
-                
-                self.output(column, col_dict)
-
         elif(self.csv_type == 'asset'):
             sc = SurfaceCSV(csv_asset)
-            for column in self.tgt_col_list:
+        elif(self.csv_type == 'issue'):
+            sc = SurfaceCSV(csv_issue)
+
+        for column in self.tgt_col_list:
+            if(column == 'Issue ID'): #for 'Issue ID' in issue.csv
+                severity_list = ['critical', 'high', 'medium', 'low']
+                for severity in severity_list:
+                    issue_dict = sc.getIssues(severity)
+                    self.output(f'{severity} {column}', issue_dict)
+                continue
+
+            elif(column == 'RootDomain'): # To extract root domain from 'Domains' from domain.csv and service.csv.
+                col_dict = sc.getRootDomainCnt()
+
+            else:
                 col_dict = sc.getColCounts(column)
-                self.output(column, col_dict)
-                
+            
+            self.output(column, col_dict)
+
+
 
     def output(self, column, col_dict):
         if(self.output_fmt == 'console_csv'):
@@ -151,19 +139,22 @@ domain_tgt_col_list = ['RootDomain', 'Domain'] #RootDomain has special culculati
 service_tgt_col_list = ['RootDomain', 'Protocol', 'Port', 'Platform']
 asset_tgt_col_list = ['Hosting Provider', 'Country Name']
 issue_tgt_col_list = ['Issue ID'] #Issue ID has special culculation
+output_fmt = 'console_csv'
 
 
-# Set environment variables
-csv_domain = os.getenv('SURFACE_CSV_DOMAIN')
-csv_service = os.getenv('SURFACE_CSV_SERVICE')
-csv_asset = os.getenv('SURFACE_CSV_ASSET')
-csv_issue = os.getenv('SURFACE_CSV_ISSUE')
-
+# Get environment variables
+try:
+    csv_domain = os.environ['SURFACE_CSV_DOMAIN']
+    csv_service = os.environ['SURFACE_CSV_SERVICE']
+    csv_asset = os.environ['SURFACE_CSV_ASSET']
+    csv_issue = os.environ['SURFACE_CSV_ISSUE']
+except KeyError as e:
+    exit(f'Error - Please specify CSV file path in environment variable: {e}')
 
 
 # Anlyze
-AnalyzeRouter('domain', domain_tgt_col_list, 'console_csv')
-AnalyzeRouter('service', service_tgt_col_list, 'console_csv')
-AnalyzeRouter('asset', asset_tgt_col_list, 'console_csv')
-AnalyzeRouter('issue', issue_tgt_col_list, 'console_csv')
+AnalyzeRouter('domain', domain_tgt_col_list, output_fmt)
+AnalyzeRouter('service', service_tgt_col_list, output_fmt)
+AnalyzeRouter('asset', asset_tgt_col_list, output_fmt)
+AnalyzeRouter('issue', issue_tgt_col_list, output_fmt)
 

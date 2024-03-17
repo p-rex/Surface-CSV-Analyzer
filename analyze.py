@@ -19,39 +19,39 @@ class SurfaceCSV:
         self.df=pd.DataFrame()
         self.result_data = {} # Summarized data. The structure is dict in dict
 
-        self.readCSV(csv_path)
-        self.analyze()
+        self._readCSV(csv_path)
+        self._analyze()
 
 
-    def readCSV(self, csv_path):
+    def _readCSV(self, csv_path):
         try:
             self.df = pd.read_csv(csv_path)
         except FileNotFoundError as e:
             exit(f'Error - {e}')
 
-    def analyze(self):
+    def _analyze(self):
         for column in self.tgt_col_list:
             if(column == 'Issue ID'): #for 'Issue ID' in issue.csv
                 severity_list = ['critical', 'high', 'medium', 'low']
                 for severity in severity_list:
-                    issue_dict = self.getIssues(severity)
+                    issue_dict = self._getIssues(severity)
                     str = f'{severity} {column}'
                     self.result_data[str] = issue_dict
 
-            elif(column == 'RootDomain'): # To extract root domain from 'Domains' from domain.csv and service.csv.
-                col_dict = self.getRootDomainCnt()
+            elif(column == 'RootDomain'): # To extract root domain from 'Domains' in domain.csv and service.csv.
+                col_dict = self._getRootDomainCnt()
                 self.result_data[column] = col_dict
 
 
             else:
-                col_dict = self.getColCounts(column)
+                col_dict = self._getColCounts(column)
                 self.result_data[column] = col_dict
 
 
     # Get the value of a specific column (get values vertically)
     # Since there are cases where you want to specify df, create an empty DataFrame and use df.empty to determine it. 
     # I wanted to put "df = self.df" in the argument, but python does not allow it.
-    def getSeries(self, column, df=pd.DataFrame()): 
+    def _getSeries(self, column, df=pd.DataFrame()): 
         if(df.empty):
             df = self.df
 
@@ -65,15 +65,15 @@ class SurfaceCSV:
 
 
     # Get number of generic column
-    def getColCounts(self, column):
-        column_list = self.getSeries(column)
+    def _getColCounts(self, column):
+        column_list = self._getSeries(column)
         return dict(collections.Counter(column_list))
 
 
     # Get number of root domain
-    def getRootDomainCnt(self):
+    def _getRootDomainCnt(self):
         domain_list = []
-        fqdn_list = self.getSeries('Domain')
+        fqdn_list = self._getSeries('Domain')
         for fqdn in fqdn_list:
             ext = tldextract.extract(fqdn)
             domain_list.append(ext.registered_domain)
@@ -82,10 +82,10 @@ class SurfaceCSV:
 
 
     # Get issue list
-    def getIssues(self, severity):
+    def _getIssues(self, severity):
         df_per_severity = self.df[self.df['Severity'] == severity]
     
-        issue_list = self.getSeries('Issue ID', df_per_severity)
+        issue_list = self._getSeries('Issue ID', df_per_severity)
         issue_cve_list = []
         issue_non_cve_list = []
         # Separate CVE and Non-CVE for easy to understand.
@@ -101,21 +101,17 @@ class SurfaceCSV:
     # This method will support multiple type of output in the future.
     def print(self, type='csv'):
         if(type == 'csv'):
-            for column, col_dict in self.result_data.items():
-                title = f'# {column} counts - from {self.csv_type}.csv'
+            self._printAsCSV()
 
-                print('\n')
-                print(title)
-                printDict(col_dict)
+    def _printAsCSV(self):
+        for column, col_dict in self.result_data.items():
+            title = f'# {column} counts - from {self.csv_type}.csv'
 
+            print('\n')
+            print(title)
+            for key, value in col_dict.items():
+                print("{0},{1}".format(key, value))
 
-
-#=============================================================#
-# functions
-#=============================================================#
-def printDict(dict):
-    for key, value in dict.items():
-        print("{0},{1}".format(key, value))
 
 
 #=============================================================#
@@ -129,7 +125,7 @@ asset_tgt_col_list = ['Hosting Provider', 'Country Name']
 issue_tgt_col_list = ['Issue ID'] #Issue ID has special culculation
 
 
-# Read config file
+# Read config yml
 try:
     with open(sys.argv[1], 'r') as yml:
         config = yaml.safe_load(yml)

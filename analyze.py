@@ -20,7 +20,7 @@ class SurfaceCSV:
         self.result_data = {} # Summarized data. The structure is dict in dict
 
         self._readCSV(csv_path)
-        self._analyze()
+        self._routeColumn()
 
 
     def _readCSV(self, csv_path):
@@ -29,7 +29,8 @@ class SurfaceCSV:
         except FileNotFoundError as e:
             exit(f'Error - {e}')
 
-    def _analyze(self):
+    # Decide the analysis route for each column
+    def _routeColumn(self):
         for column in self.tgt_col_list:
             if(column == 'Issue ID'): #for 'Issue ID' in issue.csv
                 severity_list = ['critical', 'high', 'medium', 'low']
@@ -38,14 +39,15 @@ class SurfaceCSV:
                     str = f'{severity} {column}'
                     self.result_data[str] = issue_dict
 
+                continue # self.result_data is already created
+
             elif(column == 'RootDomain'): # To extract root domain from 'Domains' in domain.csv and service.csv.
                 col_dict = self._getRootDomainCnt()
-                self.result_data[column] = col_dict
-
 
             else:
                 col_dict = self._getColCounts(column)
-                self.result_data[column] = col_dict
+            
+            self.result_data[column] = col_dict
 
 
     # Get the value of a specific column (get values vertically)

@@ -1,0 +1,5 @@
+SurfaceCSVPath: 
+  domain: '/aa/aa/xxx-domains-reposify-report.csv'
+  service: '/aa/aa/xxx-services-reposify-report.csv'
+  issue: '/aa/aa/xxx-issues-reposify-report.csv'
+  asset: '/aa/aa/xxx-assets-reposify-report.csv'

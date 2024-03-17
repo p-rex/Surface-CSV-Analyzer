@@ -15,10 +15,10 @@ pip install pandas tldextract pyyaml
   
 You can run the script without saving it by the command below.
 ```shell
-curl -s https://github_raw_url/analyze.py | python - config.yml
+curl -s https://raw.githubusercontent.com/p-rex/Surface-CSV-Analyzer/main/analyze.py | python - config.yml
 ```
   
 I recommend you to save the result as CSV.
 ```shell
-curl -s https://github_raw_url/analyze.py | python - config.yml > result.csv
+curl -s https://raw.githubusercontent.com/p-rex/Surface-CSV-Analyzer/main/analyze.py | python - config.yml > result.csv
 ```

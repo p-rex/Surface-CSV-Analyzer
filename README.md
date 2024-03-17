@@ -2,28 +2,23 @@
 
 # Usage
 
-1. Export CSV from Surface console.
+1. Export CSV from the Surface console.
   
 2. Install python modules if needed.
 ```shell
-pip install pandas tldextract
+pip install pandas tldextract pyyaml
 ``` 
   
-3. Set the csv **fullpath** to environment variables.  
+3. Download **config.yml** and specify the csv fullpath in the yaml. You can change the filename of **config.yml**.  
+  
+4. Run the **analyze.py** with config.yml as an argument.
+  
+You can run the script without saving it by the command below.
 ```shell
-export SURFACE_CSV_DOMAIN='/aa/aa/xxx-domains-reposify-report.csv' 
-export SURFACE_CSV_SERVICE='/aa/aa/xxx-services-reposify-report.csv'
-export SURFACE_CSV_ISSUE='/aa/aa/xxx-issues-reposify-report.csv'
-export SURFACE_CSV_ASSET='/aa/aa/xxx-assets-reposify-report.csv'
+curl -s https://github_raw_url/analyze.py | python - config.yml
 ```
   
-4. Run the **analyze.py**.
+I recommend you to save the result as CSV.
 ```shell
-python analyze.py
+curl -s https://github_raw_url/analyze.py | python - config.yml > result.csv
 ```
-  
-Or you can run the script without saving with the command below.
-```shell
-curl -s https://github_raw_url/analyze.py | python
-```
-
